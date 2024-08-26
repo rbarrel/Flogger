@@ -47,11 +47,11 @@ module Flogger
     logical, private :: FLOGS_USE_ENCODING = .true.
     logical, private :: FLOGS_CONSOLE_PRINT = .true.
     logical, private :: FLOGS_FILEOUT_PRINT = .false.
+    logical, private :: FLOGS_OVERWRITE = .false.
+    character(len=128), private :: FLOGS_FILE_NAME = 'logfile.txt'
 
     ! File Creation Variable
     integer, private, parameter       :: FLOGS_FILE_UNIT = 3564437
-    character(11), private, parameter :: FLOGS_FILE_NAME = 'logfile.txt'
-    character(7), private, parameter  :: FLOGS_FILE_STAT = 'REPLACE'
     character(5), private, parameter  :: FLOGS_FILE_ACTS = 'WRITE'
 
     ! Abstract Data Type : Flogger Unit 
@@ -177,8 +177,15 @@ subroutine flogger_open_file()
 
     !--- processes
     if ( FLOGS_FILEOUT_PRINT .eqv. .true. ) return
-    open(Unit=FLOGS_FILE_UNIT, File=FLOGS_FILE_NAME,                            &
-         Status=FLOGS_FILE_STAT, Action=FLOGS_FILE_ACTS)
+
+    if ( .not. FLOGS_OVERWRITE ) then
+        open(Unit=FLOGS_FILE_UNIT, File=FLOGS_FILE_NAME,                            &
+             Status="replace", Action=FLOGS_FILE_ACTS)
+    else
+        open(Unit=FLOGS_FILE_UNIT, File=FLOGS_FILE_NAME, &
+        Position="append", Status="old", Action=FLOGS_FILE_ACTS)
+    end if
+
     call print_file_header(FLOGS_FILE_UNIT)
     FLOGS_FILEOUT_PRINT = .true.
 end subroutine flogger_open_file
@@ -195,13 +202,15 @@ end subroutine flogger_close_file
 
 !--- PUBLIC FUNCTIONS / SUBROUTINES
 
-subroutine flogger_set_options(Level, UseEncoding, ConsolePrint, FileOutput)
+subroutine flogger_set_options(Level, UseEncoding, ConsolePrint, FileOutput, Overwrite, FileName)
     use FloggerFormatter
     implicit none
     integer, optional, intent(in) :: Level
     logical, optional, intent(in) :: UseEncoding
     logical, optional, intent(in) :: ConsolePrint
     logical, optional, intent(in) :: FileOutput
+    logical, optional, intent(in) :: Overwrite
+    character(len=128), optional, intent(in) :: FileName
 
     !--- processes
     if ( present(Level) ) then
@@ -214,6 +223,14 @@ subroutine flogger_set_options(Level, UseEncoding, ConsolePrint, FileOutput)
 
     if ( present(ConsolePrint) ) then
         FLOGS_CONSOLE_PRINT = ConsolePrint
+    end if
+
+    if ( present(FileName) ) then
+        FLOGS_FILE_NAME = FileName
+    end if
+
+    if ( present(Overwrite) ) then
+        FLOGS_OVERWRITE = Overwrite
     end if
 
     if ( present(FileOutput) ) then
