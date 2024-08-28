@@ -47,7 +47,6 @@ module Flogger
     logical, private :: FLOGS_USE_ENCODING = .true.
     logical, private :: FLOGS_CONSOLE_PRINT = .true.
     logical, private :: FLOGS_FILEOUT_PRINT = .false.
-    logical, private :: FLOGS_OVERWRITE = .false.
     character(len=128), private :: FLOGS_FILE_NAME = 'logfile.txt'
 
     ! File Creation Variable
@@ -178,13 +177,8 @@ subroutine flogger_open_file()
     !--- processes
     if ( FLOGS_FILEOUT_PRINT .eqv. .true. ) return
 
-    if ( .not. FLOGS_OVERWRITE ) then
-        open(Unit=FLOGS_FILE_UNIT, File=FLOGS_FILE_NAME,                            &
-             Status="replace", Action=FLOGS_FILE_ACTS)
-    else
-        open(Unit=FLOGS_FILE_UNIT, File=FLOGS_FILE_NAME, &
-        Position="append", Status="old", Action=FLOGS_FILE_ACTS)
-    end if
+    open(Unit=FLOGS_FILE_UNIT, File=FLOGS_FILE_NAME,                            &
+         Status="replace", Action=FLOGS_FILE_ACTS)
 
     call print_file_header(FLOGS_FILE_UNIT)
     FLOGS_FILEOUT_PRINT = .true.
@@ -227,10 +221,6 @@ subroutine flogger_set_options(Level, UseEncoding, ConsolePrint, FileOutput, Ove
 
     if ( present(FileName) ) then
         FLOGS_FILE_NAME = FileName
-    end if
-
-    if ( present(Overwrite) ) then
-        FLOGS_OVERWRITE = Overwrite
     end if
 
     if ( present(FileOutput) ) then
